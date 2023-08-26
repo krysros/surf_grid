@@ -4,9 +4,9 @@ from ezdxf import zoom
 from ezdxf.enums import TextEntityAlignment
 from scipy.interpolate import griddata
 
-doc = ezdxf.readfile("map.dxf")
+doc = ezdxf.readfile("example.dxf")
 msp = doc.modelspace()
-circles = msp.query('CIRCLE[layer=="pts"]')
+circles = msp.query('CIRCLE[layer=="0"]')
 
 doc.header["$PDMODE"] = 32
 doc.header["$PDSIZE"] = 0.25

@@ -1,4 +1,6 @@
 *.dxf
+!example.dxf
+*.bak
 *.csv
 
 # Byte-compiled / optimized / DLL files
