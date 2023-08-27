@@ -20,13 +20,8 @@ for circle in circles:
     x, y, z = circle.dxf.center
     p = (x, y, z)
     coords.append(p)
-    msp.add_circle(p, 0.5)
-    msp.add_text(f"{z}", height=0.5, dxfattribs={"style": "myStandard"}).set_placement(
-        (x, y), align=TextEntityAlignment.LEFT
-    )
 
 coords = np.array(coords)
-
 points = coords[:, :2]
 values = coords[:, 2]
 
@@ -75,6 +70,5 @@ np.savetxt(
     fmt=["%i", "%10.4f", "%10.4f", "%10.4f", "%10.4f"],
     encoding="utf-8",
 )
-
 zoom.extents(msp)
 doc.saveas("output.dxf")
