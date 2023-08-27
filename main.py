@@ -12,9 +12,7 @@ doc.header["$PDMODE"] = 32
 doc.header["$PDSIZE"] = 0.25
 
 doc.styles.new("myStandard", dxfattribs={"font": "Arial.ttf"})
-
-doc.layers.new(name="sqrs", dxfattribs={"color": 4})
-doc.layers.new(name="grid", dxfattribs={"color": 6})
+doc.layers.new(name="PY")
 
 coords = []
 
@@ -59,7 +57,7 @@ for i, x in enumerate(grid_x):
     for j, y in enumerate(grid_y):
         num += 1
         msp.add_text(
-            f"{num}", height=0.25, dxfattribs={"layer": "sqrs", "style": "myStandard"}
+            f"{num}", height=0.25, dxfattribs={"layer": "PY", "color": 4, "style": "myStandard"}
         ).set_placement((x + step / 2, y + step / 2), align=TextEntityAlignment.CENTER)
         z = Z[i, j]
         try:
@@ -67,7 +65,7 @@ for i, x in enumerate(grid_x):
         except IndexError:
             pass
         if not np.isnan(z):
-            msp.add_point((x, y, z), dxfattribs={"layer": "grid"})
+            msp.add_point((x, y, z), dxfattribs={"layer": "PY", "color": 6})
 
 data = np.array(data)
 np.savetxt(
