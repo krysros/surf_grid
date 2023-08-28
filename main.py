@@ -7,12 +7,12 @@ from scipy.interpolate import griddata
 
 parser = argparse.ArgumentParser(description='Plot surface')
 parser.add_argument('filename', help='dxf file')
+parser.add_argument('--layer', default=0, help='dxf layer')
+parser.add_argument('--typ', default='CIRCLE', help='CIRCLE or POINT')
 parser.add_argument('--backend', default='matplotlib', help='matplotlib or plotly')
 args = parser.parse_args()
 
 doc = ezdxf.readfile("example.dxf")
-msp = doc.modelspace()
-pts = msp.query('CIRCLE[layer=="0"]')
 
 doc.header["$PDMODE"] = 32
 doc.header["$PDSIZE"] = 0.25
@@ -20,12 +20,18 @@ doc.header["$PDSIZE"] = 0.25
 doc.styles.new("myStandard", dxfattribs={"font": "Arial.ttf"})
 doc.layers.new(name="PY")
 
+msp = doc.modelspace()
 coords = []
 
-for pt in pts:
-    x, y, z = pt.dxf.center
-    p = (x, y, z)
-    coords.append(p)
+if args.typ == 'CIRCLE':
+    pts = msp.query(f'CIRCLE[layer=="{args.layer}"]')
+    for p in pts:
+        coords.append(p.dxf.center)
+
+if args.typ == 'POINT':
+    pts = msp.query(f'POINT[layer=="{args.layer}"]')
+    for p in pts:
+        coords.append(p.dxf.location)
 
 coords = np.array(coords)
 points = coords[:, :2]
