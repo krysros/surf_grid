@@ -12,7 +12,7 @@ args = parser.parse_args()
 
 doc = ezdxf.readfile("example.dxf")
 msp = doc.modelspace()
-circles = msp.query('CIRCLE[layer=="0"]')
+pts = msp.query('CIRCLE[layer=="0"]')
 
 doc.header["$PDMODE"] = 32
 doc.header["$PDSIZE"] = 0.25
@@ -22,8 +22,8 @@ doc.layers.new(name="PY")
 
 coords = []
 
-for circle in circles:
-    x, y, z = circle.dxf.center
+for pt in pts:
+    x, y, z = pt.dxf.center
     p = (x, y, z)
     coords.append(p)
 
