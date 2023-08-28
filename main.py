@@ -1,8 +1,14 @@
+import argparse
 import ezdxf
 import numpy as np
 from ezdxf import zoom
 from ezdxf.enums import TextEntityAlignment
 from scipy.interpolate import griddata
+
+parser = argparse.ArgumentParser(description='Plot surface')
+parser.add_argument('filename', help='dxf file')
+parser.add_argument('--backend', default='matplotlib', help='matplotlib or plotly')
+args = parser.parse_args()
 
 doc = ezdxf.readfile("example.dxf")
 msp = doc.modelspace()
@@ -44,9 +50,9 @@ X, Y = np.meshgrid(grid_x, grid_y)
 Z = griddata(points, values, (X, Y), method="linear")
 Z = Z.T
 
-icoords = []
 num = 0
-data = []
+icoords = []
+squares = []
 
 for i, x in enumerate(grid_x):
     for j, y in enumerate(grid_y):
@@ -56,19 +62,49 @@ for i, x in enumerate(grid_x):
         ).set_placement((x + step / 2, y + step / 2), align=TextEntityAlignment.CENTER)
         z = Z[i, j]
         try:
-            data.append([num, Z[i, j], Z[i + 1, j], Z[i, j + 1], Z[i + 1, j + 1]])
+            squares.append([num, Z[i, j], Z[i + 1, j], Z[i, j + 1], Z[i + 1, j + 1]])
         except IndexError:
             pass
         if not np.isnan(z):
+            icoords.append((x, y, z))
             msp.add_point((x, y, z), dxfattribs={"layer": "PY", "color": 6})
 
-data = np.array(data)
+squares = np.array(squares)
+icoords = np.array(icoords)
+
+x = icoords[:, 0]
+y = icoords[:, 1]
+z = icoords[:, 2]
+
 np.savetxt(
     "output.csv",
-    data,
+    squares,
     delimiter=";",
     fmt=["%i", "%10.4f", "%10.4f", "%10.4f", "%10.4f"],
     encoding="utf-8",
 )
 zoom.extents(msp)
 doc.saveas("output.dxf")
+
+if args.backend == 'matplotlib':
+
+    import matplotlib
+    import matplotlib.pyplot as plt
+    from matplotlib import cm
+    matplotlib.use('qtagg')
+
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    surf = ax.plot_trisurf(x, y, z, cmap=cm.terrain)
+    plt.show()
+
+elif args.backend == 'plotly':
+
+    from plotly.graph_objects import Figure
+    from plotly.graph_objects import Mesh3d
+
+    fig = Figure(data=[Mesh3d(x=x, y=y, z=z, opacity=0.5)])
+    fig.show()
+
+else:
+    print('Unknown backend')

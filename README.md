@@ -13,14 +13,5 @@ python -m pip install -r requirements.txt
 ## Calculations
 
 ```console
-python main.py
-```
-
-## Visualization
-
-You can also visualize the reconstructed surface.
-
-```console
-python dxf2npz.py output.dxf
-python skar.py output.npz
+python main.py example.dxf
 ```
