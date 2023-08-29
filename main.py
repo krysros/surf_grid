@@ -27,15 +27,15 @@ doc.layers.new(name="PY")
 msp = doc.modelspace()
 coords = []
 
-if args.typ == "CIRCLE":
-    pts = msp.query(f'CIRCLE[layer=="{args.layer}"]')
-    for p in pts:
-        coords.append(p.dxf.center)
-
-if args.typ == "POINT":
-    pts = msp.query(f'POINT[layer=="{args.layer}"]')
-    for p in pts:
-        coords.append(p.dxf.location)
+match args.typ:
+    case "CIRCLE":
+        pts = msp.query(f'CIRCLE[layer=="{args.layer}"]')
+        for p in pts:
+            coords.append(p.dxf.center)
+    case "POINT":
+        pts = msp.query(f'POINT[layer=="{args.layer}"]')
+        for p in pts:
+            coords.append(p.dxf.location)
 
 print("Interpolation...")
 
