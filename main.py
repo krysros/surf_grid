@@ -1,18 +1,22 @@
 import argparse
+
 import ezdxf
+import matplotlib.pyplot as plt
 import numpy as np
 from ezdxf import zoom
 from ezdxf.enums import TextEntityAlignment
+from matplotlib import cm
 from scipy.interpolate import griddata
 
-parser = argparse.ArgumentParser(description='Plot surface')
-parser.add_argument('filename', help='dxf file')
-parser.add_argument('--layer', default=0, help='dxf layer')
-parser.add_argument('--typ', default='CIRCLE', help='CIRCLE or POINT')
-parser.add_argument('--backend', default='matplotlib', help='matplotlib or plotly')
+parser = argparse.ArgumentParser(description="Plot surface")
+parser.add_argument("filename", help="dxf file")
+parser.add_argument("--layer", default=0, help="dxf layer")
+parser.add_argument("--typ", default="CIRCLE", help="CIRCLE or POINT")
 args = parser.parse_args()
 
-doc = ezdxf.readfile("example.dxf")
+print("Reading dxf...")
+
+doc = ezdxf.readfile(args.filename)
 
 doc.header["$PDMODE"] = 32
 doc.header["$PDSIZE"] = 0.25
@@ -23,15 +27,17 @@ doc.layers.new(name="PY")
 msp = doc.modelspace()
 coords = []
 
-if args.typ == 'CIRCLE':
+if args.typ == "CIRCLE":
     pts = msp.query(f'CIRCLE[layer=="{args.layer}"]')
     for p in pts:
         coords.append(p.dxf.center)
 
-if args.typ == 'POINT':
+if args.typ == "POINT":
     pts = msp.query(f'POINT[layer=="{args.layer}"]')
     for p in pts:
         coords.append(p.dxf.location)
+
+print("Interpolation...")
 
 coords = np.array(coords)
 points = coords[:, :2]
@@ -56,6 +62,8 @@ X, Y = np.meshgrid(grid_x, grid_y)
 Z = griddata(points, values, (X, Y), method="linear")
 Z = Z.T
 
+print("Adding to dxf...")
+
 num = 0
 icoords = []
 squares = []
@@ -64,7 +72,9 @@ for i, x in enumerate(grid_x):
     for j, y in enumerate(grid_y):
         num += 1
         msp.add_text(
-            f"{num}", height=0.25, dxfattribs={"layer": "PY", "color": 4, "style": "myStandard"}
+            f"{num}",
+            height=0.25,
+            dxfattribs={"layer": "PY", "color": 4, "style": "myStandard"},
         ).set_placement((x + step / 2, y + step / 2), align=TextEntityAlignment.CENTER)
         z = Z[i, j]
         try:
@@ -75,6 +85,11 @@ for i, x in enumerate(grid_x):
             icoords.append((x, y, z))
             msp.add_point((x, y, z), dxfattribs={"layer": "PY", "color": 6})
 
+print("Saving dxf...")
+
+zoom.extents(msp)
+doc.saveas(args.filename[:-4] + "_output.dxf")
+
 squares = np.array(squares)
 icoords = np.array(icoords)
 
@@ -82,33 +97,19 @@ x = icoords[:, 0]
 y = icoords[:, 1]
 z = icoords[:, 2]
 
+print("Saving csv...")
+
 np.savetxt(
-    "output.csv",
+    args.filename[:-4] + "_output.csv",
     squares,
     delimiter=";",
     fmt=["%i", "%10.4f", "%10.4f", "%10.4f", "%10.4f"],
     encoding="utf-8",
 )
-zoom.extents(msp)
-doc.saveas("output.dxf")
 
-if args.backend == 'matplotlib':
+print("Plotting surface...")
 
-    import matplotlib.pyplot as plt
-    from matplotlib import cm
-
-    fig = plt.figure()
-    ax = fig.add_subplot(projection='3d')
-    surf = ax.plot_trisurf(x, y, z, cmap=cm.terrain)
-    plt.show()
-
-elif args.backend == 'plotly':
-
-    from plotly.graph_objects import Figure
-    from plotly.graph_objects import Mesh3d
-
-    fig = Figure(data=[Mesh3d(x=x, y=y, z=z, opacity=0.5)])
-    fig.show()
-
-else:
-    print('Unknown backend')
+fig = plt.figure()
+ax = fig.add_subplot(projection="3d")
+surf = ax.plot_trisurf(x, y, z, cmap=cm.terrain)
+plt.show()

@@ -3,4 +3,3 @@ numpy
 scipy
 matplotlib
 PySide6
-plotly
