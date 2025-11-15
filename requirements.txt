@@ -2,4 +2,3 @@ ezdxf
 numpy
 scipy
 matplotlib
-PySide6
